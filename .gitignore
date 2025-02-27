@@ -13,6 +13,3 @@ wheels/
 .pytest_cache
 .uv_cache
 
-# This should be removed when the template is actually being used
-uv.lock 
-

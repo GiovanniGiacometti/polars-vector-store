@@ -14,7 +14,7 @@ format:
 
 lint:
 	uv run ruff check --fix
-	uv run mypy --ignore-missing-imports --install-types --non-interactive --package python_repo_template
+	uv run mypy --ignore-missing-imports --install-types --non-interactive --package src
 
 test:
 	uv run pytest --verbose --color=yes tests
@@ -22,7 +22,7 @@ test:
 validate: format lint test
 
 dockerize:
-	docker build -t python-repo-template .
+	docker build -t image .
 
 # Use it like:
 # just run 10

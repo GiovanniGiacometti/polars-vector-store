@@ -1,6 +1,6 @@
 import argparse
 import sys
-from python_repo_template.func import random_sum
+from src.func import random_sum
 import loguru
 
 if __name__ == "__main__":
