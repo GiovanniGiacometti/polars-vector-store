@@ -1,6 +1,6 @@
 import argparse
 import sys
-from src.func import random_sum
+from polars_vector_store.polars.base import random_sum
 import loguru
 
 if __name__ == "__main__":
