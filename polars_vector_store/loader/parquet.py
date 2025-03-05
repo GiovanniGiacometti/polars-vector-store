@@ -1,6 +1,5 @@
 from __future__ import annotations
-from typing import Self
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 import polars as pl
 
 
@@ -63,7 +62,7 @@ class ParquetLoader(BaseModel):
         and the column value as the value
         """
         return (
-            self._get_materialized_df().select(self.metadata_columns_names).to_dicts()
+            self._get_materialized_df().select(self.metadata_columns_names).to_dicts()  # type: ignore
         )
 
     def get_lazy_df(self) -> pl.LazyFrame:

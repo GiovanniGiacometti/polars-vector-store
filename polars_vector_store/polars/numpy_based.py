@@ -45,8 +45,8 @@ class NumpyBasedPolarsVectorStore(PolarsVectorStore):
             lazy_df = lazy_df.filter(filters)
 
             # If we have already the materialized df, we filter it
-            if self.materialized_df is not None:
-                materialized_df = self.materialized_df.filter(filters)
+            if materialized_df is not None:
+                materialized_df = materialized_df.filter(filters)
             else:
                 materialized_df = lazy_df.select([embedding_col]).collect()
 

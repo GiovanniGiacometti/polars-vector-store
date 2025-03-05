@@ -44,7 +44,7 @@ class PolarsTopKVectorStore(PolarsVectorStore):
                 ),
             )
             .with_columns(
-                sim=np.dot(
+                sim=np.dot(  # type: ignore
                     pl.col("embedding"),
                     pl.col("query"),
                 ).arr.sum()

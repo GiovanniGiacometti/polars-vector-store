@@ -50,11 +50,11 @@ class ChromaDB(VectorStore):
         # Chroma doesn't allow metadata to be None
         for i in range(len(metadata)):
             to_pop = []
-            for k, v in metadata[i].items():
+            for k, v in metadata[i].items():  # type: ignore
                 if v is None:
                     to_pop.append(k)
             for k in to_pop:
-                metadata[i].pop(k)
+                metadata[i].pop(k)  # type: ignore
 
         for i in range(0, len(ids), ChromaDB.MAX_BATCH_SIZE):
             loguru.logger.info(
@@ -66,7 +66,7 @@ class ChromaDB(VectorStore):
                 ids=ids[i : i + ChromaDB.MAX_BATCH_SIZE],
                 documents=texts[i : i + ChromaDB.MAX_BATCH_SIZE],
                 embeddings=embeddings[i : i + ChromaDB.MAX_BATCH_SIZE],
-                metadatas=metadata[i : i + ChromaDB.MAX_BATCH_SIZE],
+                metadatas=metadata[i : i + ChromaDB.MAX_BATCH_SIZE],  # type: ignore
             )
 
         return db

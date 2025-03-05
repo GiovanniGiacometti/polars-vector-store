@@ -14,7 +14,7 @@ format:
 
 lint:
 	uv run ruff check --fix
-	uv run mypy --ignore-missing-imports --install-types --non-interactive --package src
+	uv run mypy --ignore-missing-imports --install-types --non-interactive --package polars_vector_store
 
 test:
 	uv run pytest --verbose --color=yes tests

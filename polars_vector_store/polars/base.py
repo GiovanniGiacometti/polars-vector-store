@@ -1,5 +1,3 @@
-import os
-import polars as pl
 from polars_vector_store.base import VectorStore
 from polars_vector_store.loader.parquet import ParquetLoader
 
