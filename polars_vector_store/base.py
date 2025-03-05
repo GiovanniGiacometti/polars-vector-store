@@ -15,16 +15,16 @@ class VectorStore(ABC):
         self,
         vector: np.ndarray,
         k: int,
-        filter: Any | None = None,
+        filters: Any | None = None,
         **kwargs,
     ):
         """
         Abstract method for similarity search by vector
         """
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def from_parquet(loader: ParquetLoader, **kwargs):
+    def from_parquet(cls, loader: ParquetLoader, **kwargs):
         """
         Abstract method for initializing the vector store from a Parquet file
         """

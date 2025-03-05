@@ -25,6 +25,18 @@ class ParquetLoader(BaseModel):
 
     streaming_mode: bool = False
 
+    def get_info_columns(
+        self,
+    ) -> list[str]:
+        """
+        Get all the columns in the parquet file
+        """
+
+        return [
+            self.id_column_name,
+            self.text_column_name,
+        ] + self.metadata_columns_names
+
     def get_ids(self) -> list:
         """
         Get the id column as a list
@@ -50,7 +62,19 @@ class ParquetLoader(BaseModel):
         one per row, with the column name as the key
         and the column value as the value
         """
-        return self._get_materialized_df().select(self.metadata_columns_names).to_dicts()
+        return (
+            self._get_materialized_df().select(self.metadata_columns_names).to_dicts()
+        )
+
+    def get_lazy_df(self) -> pl.LazyFrame:
+        """
+        Get the lazy DataFrame
+        """
+
+        if self.lazy_df is None:
+            self.lazy_df = pl.scan_parquet(self.path_to_file)
+
+        return self.lazy_df
 
     def _get_materialized_df(self) -> pl.DataFrame:
         """
@@ -59,7 +83,7 @@ class ParquetLoader(BaseModel):
 
         if self.materialized_df is None:
             if self.lazy_df is None:
-                self.lazy_df = pl.scan_parquet(self.path_to_file)
+                self.lazy_df = self.get_lazy_df()
             self.materialized_df = self.lazy_df.collect(streaming=self.streaming_mode)
 
         return self.materialized_df

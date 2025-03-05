@@ -32,8 +32,8 @@ class ChromaDB(VectorStore):
             name=collection_name, metadata=collection_metadata
         )
 
-    @staticmethod
-    def from_parquet(loader: ParquetLoader, **kwargs):
+    @classmethod
+    def from_parquet(cls, loader: ParquetLoader, **kwargs):
         """
         Initialize the ChromaDB from a Parquet file
         """
@@ -75,7 +75,7 @@ class ChromaDB(VectorStore):
         self,
         vector: np.ndarray,
         k: int,
-        filter: Any | None = None,
+        filters: Any | None = None,
         **kwargs,
     ):
         """
@@ -85,6 +85,6 @@ class ChromaDB(VectorStore):
         return self.collection.query(
             query_embeddings=vector,
             n_results=k,
-            where=filter,
+            where=filters,
             **kwargs,
         )
