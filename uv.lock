@@ -1214,6 +1214,22 @@ wheels = [
 ]
 
 [[package]]
+name = "polars-argpartition"
+version = "0.0.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "polars" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/c2/94/9da858298f1bda1aca6fdf9e4765289207385014290a94f8c2f2753bad2e/polars_argpartition-0.0.3.tar.gz", hash = "sha256:aa0cfff5822ed4d369e4404db4c80cc95d03ff92319245c2631c63ba609b6621", size = 45455 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ce/d1/9b8be5f495986402ccb2c05709d540f856b38559b12e6fdaae91fd2330a9/polars_argpartition-0.0.3-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:6218579c937dc12c23c2562b5571daf1012accc7d6970e5f25d81e0fd08a2295", size = 3990530 },
+    { url = "https://files.pythonhosted.org/packages/a7/7e/be302bdb53a9c1407d0e2da127ecf729a130bc977af5334c17e6edf01c1d/polars_argpartition-0.0.3-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:f055c987e6c9ddc2d6f718646a62f592c5bfcac5c0333942d324c23685cb8483", size = 3693513 },
+    { url = "https://files.pythonhosted.org/packages/a1/e4/b255de615d390020ead7e00b4e1928de3bcc60addce178b0a2c6005065ee/polars_argpartition-0.0.3-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e25eb5a660f885a5c6ab68560895e0a4fd2688ff8b40b555af4946f3c7ce1992", size = 4093366 },
+    { url = "https://files.pythonhosted.org/packages/23/20/928f04b3f549b1dc6c3892123f6b6b9f49db7bb5b7013f5f279b48155dd5/polars_argpartition-0.0.3-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:09b916aed28727060b4654bf352fb33421333250bc39b8f6006f00129491364a", size = 4553304 },
+    { url = "https://files.pythonhosted.org/packages/75/a1/c1db2e456595fe1f3db1fbddfe11c2ee1eb7033e455eef54fcc1e0b3ca0a/polars_argpartition-0.0.3-cp38-abi3-win_amd64.whl", hash = "sha256:b4caeafc167ab6a071db3f7fe2b008eabad909f23277bd24269b919cc14f5095", size = 3803762 },
+]
+
+[[package]]
 name = "posthog"
 version = "3.18.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1467,6 +1483,7 @@ dependencies = [
     { name = "loguru" },
     { name = "numpy" },
     { name = "polars" },
+    { name = "polars-argpartition" },
     { name = "pydantic" },
 ]
 
@@ -1487,6 +1504,7 @@ requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "numpy", specifier = ">=2.2.3" },
     { name = "polars", specifier = ">=1.23.0" },
+    { name = "polars-argpartition", specifier = ">=0.0.3" },
     { name = "pydantic", specifier = ">=2.10.6" },
 ]
 

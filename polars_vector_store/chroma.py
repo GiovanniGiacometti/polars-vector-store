@@ -56,6 +56,7 @@ class ChromaDB(VectorStore):
             for k in to_pop:
                 metadata[i].pop(k)  # type: ignore
 
+        # There's a limit of 5461 documents per batch
         for i in range(0, len(ids), ChromaDB.MAX_BATCH_SIZE):
             loguru.logger.info(
                 "Upserting batch {start_idx} to {end_idx}",
