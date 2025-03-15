@@ -48,7 +48,11 @@ TOP_K = 5
 
 # Vector type
 
-VECTOR_TYPE = np.float32
+VECTOR_DTYPES: list[tuple[np.dtype, str]] = [
+    (np.float16, "float16"),
+    (np.float32, "float32"),
+    (np.float64, "float64"),
+]
 
 # -----------------
 
@@ -184,90 +188,100 @@ if __name__ == "__main__":
     # I'm aware these are not enough, but it's a start.
     # Also, ChromaDB takes some time to insert data,
     # so I'm keeping the number of vectors low for now.
-    vector_store_cardinality = [500]
+    vector_store_cardinality = [500, 1000, 10_000, 50_000, 100_000]
 
-    results = defaultdict(list)
+    for (
+        dtype,
+        dtype_name,
+    ) in VECTOR_DTYPES:
+        results = defaultdict(list)
 
-    for n_rows in vector_store_cardinality:
-        results["n_rows"].append(n_rows)
+        for n_rows in vector_store_cardinality:
+            results["n_rows"].append(n_rows)
 
-        logger.info("=====================================")
+            logger.info("=====================================")
+            logger.info(
+                "Starting benchmark with number of vectors = {n_rows} and vectors dtype = {type}",
+                n_rows=n_rows,
+                type=dtype_name,
+            )
+
+            # Generate random data
+            path_to_file = os.path.join(
+                DATA_FOLDER, f"benchmark_{n_rows}_{dtype_name}.parquet"
+            )
+
+            loader = generate_loader(
+                path_to_file=path_to_file,
+                n_rows=n_rows,
+                n_dimensions=EMBEDDING_DIM,
+                metadata_possible_values=METADATA_POSSIBLE_VALUES,
+                n_metadata=N_METADATA,
+                dtype=dtype,
+            )
+
+            # generate query vector
+            query_vector = generate_embedding(
+                n_embeddings=1, n_dimensions=EMBEDDING_DIM, seed=42, dtype=dtype
+            )
+
+            # We query once without metadata and once with all metadata
+
+            for vector_store_class in vectorstores_classes:
+                logger.info("-------------------------------------")
+                logger.info(
+                    "Benchmarking {vector_store_class}",
+                    vector_store_class=vector_store_class.__name__,
+                )
+
+                # Instantiate the VectorStore
+
+                start_time = timeit.default_timer()
+                vector_store = instantiate_vector_store(
+                    vector_store_class=vector_store_class,
+                    loader=loader,
+                    db_path=os.path.join(  # only for ChromaDB
+                        DATA_FOLDER, f"chromadb-{n_rows}-{dtype_name}"
+                    ),
+                )
+
+                result_time = round(timeit.default_timer() - start_time, 5)
+
+                results[f"{vector_store_class.__name__} - instantiation"].append(
+                    result_time
+                )
+
+                logger.info(
+                    "Time to instantiate VectorStore: {time} seconds",
+                    time=result_time,
+                )
+
+                # Query without metadata
+
+                logger.info("Querying without metadata")
+
+                query_time = benchmark_query(
+                    vector_store=vector_store,
+                    query_vector=query_vector,
+                    top_k=TOP_K,
+                    num_runs=NUM_RUNS,
+                )
+
+                results[f"{vector_store_class.__name__} - query"].append(query_time)
+
+                logger.info(
+                    "Time to query without metadata: {time} seconds",
+                    time=round(query_time, 5),
+                )
+
+        # Save results to a CSV file
+        results_df = pl.DataFrame(results)
+        results_df.write_csv(
+            os.path.join(RESULTS_FOLDER, f"benchmark_results_{dtype_name}.csv")
+        )
+        logger.info("Results saved")
         logger.info(
-            "Starting benchmark with number of vectors = {n_rows}", n_rows=n_rows
+            results_df.select(
+                [c for c in results_df.columns if "query" in c or "n_rows" in c]
+            )
         )
-
-        # Generate random data
-        path_to_file = os.path.join(DATA_FOLDER, f"benchmark_{n_rows}.parquet")
-
-        loader = generate_loader(
-            path_to_file=path_to_file,
-            n_rows=n_rows,
-            n_dimensions=EMBEDDING_DIM,
-            metadata_possible_values=METADATA_POSSIBLE_VALUES,
-            n_metadata=N_METADATA,
-            dtype=VECTOR_TYPE,
-        )
-
-        # generate query vector
-        query_vector = generate_embedding(
-            n_embeddings=1, n_dimensions=EMBEDDING_DIM, seed=42, dtype=VECTOR_TYPE
-        )
-
-        # We query once without metadata and once with all metadata
-
-        for vector_store_class in vectorstores_classes:
-            logger.info("-------------------------------------")
-            logger.info(
-                "Benchmarking {vector_store_class}",
-                vector_store_class=vector_store_class.__name__,
-            )
-
-            # Instantiate the VectorStore
-
-            start_time = timeit.default_timer()
-            vector_store = instantiate_vector_store(
-                vector_store_class=vector_store_class,
-                loader=loader,
-                db_path=os.path.join(  # only for ChromaDB
-                    DATA_FOLDER, f"chromadb-{n_rows}"
-                ),
-            )
-
-            result_time = round(timeit.default_timer() - start_time, 5)
-
-            results[f"{vector_store_class.__name__} - instantiation"].append(
-                result_time
-            )
-
-            logger.info(
-                "Time to instantiate VectorStore: {time} seconds",
-                time=result_time,
-            )
-
-            # Query without metadata
-
-            logger.info("Querying without metadata")
-
-            query_time = benchmark_query(
-                vector_store=vector_store,
-                query_vector=query_vector,
-                top_k=TOP_K,
-                num_runs=NUM_RUNS,
-            )
-
-            results[f"{vector_store_class.__name__} - query"].append(query_time)
-
-            logger.info(
-                "Time to query without metadata: {time} seconds",
-                time=round(query_time, 5),
-            )
-
-    # Save results to a CSV file
-    results_df = pl.DataFrame(results)
-    results_df.write_csv(os.path.join(RESULTS_FOLDER, "benchmark_results_float64.csv"))
-    logger.info("Results saved")
-    print(
-        results_df.select(
-            [c for c in results_df.columns if "query" in c or "n_rows" in c]
-        )
-    )
