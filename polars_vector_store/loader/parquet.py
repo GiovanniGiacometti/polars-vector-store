@@ -55,14 +55,14 @@ class ParquetLoader(BaseModel):
         """
         return self._get_column_as_list(self.embedding_column_name)
 
-    def get_metadata(self) -> dict[str, list]:
+    def get_metadata(self) -> list[dict]:
         """
         Get the metadata columns as a list of dictionaries,
         one per row, with the column name as the key
         and the column value as the value
         """
         return (
-            self._get_materialized_df().select(self.metadata_columns_names).to_dicts()  # type: ignore
+            self._get_materialized_df().select(self.metadata_columns_names).to_dicts()
         )
 
     def get_lazy_df(self) -> pl.LazyFrame:

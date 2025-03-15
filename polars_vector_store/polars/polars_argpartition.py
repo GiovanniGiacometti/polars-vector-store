@@ -59,10 +59,3 @@ class PolarsArgPartitionVectorStore(PolarsVectorStore):
             .select(self.loader.get_info_columns())
             .collect()
         )
-
-    @classmethod
-    def from_parquet(cls, loader: ParquetLoader, **kwargs):
-        """
-        Create a PolarsVectorStore from a parquet file
-        """
-        return cls(loader, **kwargs)

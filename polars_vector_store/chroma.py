@@ -35,7 +35,7 @@ class ChromaDB(VectorStore):
     @classmethod
     def from_parquet(cls, loader: ParquetLoader, **kwargs):
         """
-        Initialize the ChromaDB from a Parquet file
+        Initialize ChromaDB from a Parquet file
         """
 
         db = ChromaDB(**kwargs)

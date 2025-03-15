@@ -20,11 +20,3 @@ test:
 	uv run pytest --verbose --color=yes tests
 
 validate: format lint test
-
-dockerize:
-	docker build -t image .
-
-# Use it like:
-# just run 10
-run number:
-	uv run main.py --number {{number}}

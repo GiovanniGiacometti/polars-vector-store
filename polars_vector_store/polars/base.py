@@ -6,8 +6,8 @@ class PolarsVectorStore(VectorStore):
     """
     Base class for PolarsVectorStore
 
-    We want to provide different implementations
-    and this base class provides the interface.
+    This class represents the interface of Polars
+    based VectorStores.
 
     The reason to have multiple implementations is two-fold:
     - Benchmarking
@@ -21,7 +21,22 @@ class PolarsVectorStore(VectorStore):
         Parameters
         ----------
         loader: ParquetLoader
-            The loader to load the data
+            The loader to load the data from
+            a Parquet file
         """
 
         self.loader = loader
+
+    @classmethod
+    def from_parquet(cls, loader: ParquetLoader, **kwargs):
+        """
+        Initialize the PolarsVectorStore from a Parquet file
+
+        Parameters
+        ----------
+        loader: ParquetLoader
+            The loader to load the data from
+            a Parquet file
+        """
+
+        return cls(loader)
