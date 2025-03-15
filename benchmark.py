@@ -184,7 +184,7 @@ if __name__ == "__main__":
         PolarsTopKVectorStore,
     ]
 
-    # Define the dimensions to benchmark
+    # Define the dimensions to benchmark with.
     # I'm aware these are not enough, but it's a start.
     # Also, ChromaDB takes some time to insert data,
     # so I'm keeping the number of vectors low for now.
