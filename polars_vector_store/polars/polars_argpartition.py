@@ -1,7 +1,6 @@
 from typing import Any
 import polars as pl
 import numpy as np
-from polars_vector_store.loader.parquet import ParquetLoader
 from polars_vector_store.polars.base import PolarsVectorStore
 from polars_argpartition import argpartition
 

@@ -27,6 +27,11 @@ class ChromaDB(VectorStore):
         collection_metadata: dict | None = None,
         **kwargs,
     ) -> None:
+        loguru.logger.info(
+            "Initializing ChromaDB with db_path={db_path}",
+            db_path=db_path,
+        )
+
         self.client = chromadb.PersistentClient(db_path, **kwargs)
         self.collection = self.client.get_or_create_collection(
             name=collection_name, metadata=collection_metadata
