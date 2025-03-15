@@ -1,6 +1,6 @@
 # Inspired by https://github.com/FrancescoSaverioZuppichini/python-template/blob/main/.github/workflows/test.yml
 
-name: Main Lint Test
+name: Benchmark
 on:
   push:
     branches: main
@@ -9,6 +9,9 @@ jobs:
   main-lint-test:
     runs-on: ubuntu-latest
     if: contains(github.event.head_commit.message, '[benchmark]')
+
+    permissions:
+      contents: write
 
     steps:
       - name: 🛎️ Checkout
