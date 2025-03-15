@@ -1,0 +1,2 @@
+n_rows,ChromaDB - instantiation,ChromaDB - query,NumpyBasedPolarsVectorStore - instantiation,NumpyBasedPolarsVectorStore - query,PolarsArgPartitionVectorStore - instantiation,PolarsArgPartitionVectorStore - query,PolarsTopKVectorStore - instantiation,PolarsTopKVectorStore - query
+500,1.0184,0.013229094999999802,0.00002,0.0030829909999994243,0.00001,0.033480935000000045,0.00002,0.03230298999999093
