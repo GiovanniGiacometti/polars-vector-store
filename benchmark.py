@@ -8,6 +8,7 @@ import polars as pl
 from polars_vector_store.base import VectorStore
 from polars_vector_store.chroma import ChromaDB
 from polars_vector_store.loader.parquet import ParquetLoader
+from polars_vector_store.polars.base import PolarsVectorStore
 from polars_vector_store.polars.numpy_based import NumpyBasedPolarsVectorStore
 from polars_vector_store.polars.polars_argpartition import PolarsArgPartitionVectorStore
 from polars_vector_store.polars.polars_top_k import PolarsTopKVectorStore
@@ -28,7 +29,7 @@ DATA_FOLDER = os.path.join(FOLDER, "data")
 RESULTS_FOLDER = os.path.join(FOLDER, "results")
 
 # Embedding dimensions
-EMBEDDING_DIMS = [128, 384, 768, 3072]
+EMBEDDING_DIMS = [128, 384, 768, 1024]
 
 N_METADATA = 3
 
@@ -51,7 +52,7 @@ TOP_K = 5
 VECTOR_DTYPES: list[tuple[np.dtype, str]] = [
     (np.float16, "float16"),
     (np.float32, "float32"),
-    (np.float64, "float64"),
+    # (np.float64, "float64"),
 ]
 
 # -----------------
@@ -136,7 +137,7 @@ def benchmark_query(
     vector_store: VectorStore,
     query_vector: np.ndarray,
     top_k: int = TOP_K,
-    filters: dict | None = None,
+    filters: dict | pl.Expr | None = None,
     num_runs: int = NUM_RUNS,
 ) -> float:
     """
@@ -150,7 +151,7 @@ def benchmark_query(
         "filters": filters,
     }
 
-    if filters:
+    if filters is not None:
         stmt_code = "vector_store.similarity_search_by_vector(query_vector, k=top_k, filters=filters)"
     else:
         stmt_code = "vector_store.similarity_search_by_vector(query_vector, k=top_k)"
@@ -168,6 +169,51 @@ def benchmark_query(
     # of the list of times
 
     return min(query_time)
+
+
+def make_metadata_filters(
+    vector_store: VectorStore,
+    loader: ParquetLoader,
+    metadata_possible_values: list[list[str | int]],
+) -> dict | pl.Expr:
+    """
+    Make metadata filters according to the VectorStore class.
+    One filter per metadata column
+    """
+    if isinstance(vector_store, ChromaDB):
+        filters_cond = []
+
+        for i, col in enumerate(loader.metadata_columns_names):
+            if isinstance(metadata_possible_values[i][0], str):
+                filters_cond.append({col: {"$in": metadata_possible_values[i][:3]}})
+
+            elif isinstance(metadata_possible_values[i][0], int):
+                filters_cond.append(
+                    {
+                        col: {
+                            "$gt": metadata_possible_values[i][1],
+                        }
+                    }
+                )
+
+        return {
+            "$and": filters_cond,
+        }
+
+    elif isinstance(vector_store, PolarsVectorStore):
+        filters = pl.lit(True)
+
+        for i, col in enumerate(loader.metadata_columns_names):
+            if isinstance(metadata_possible_values[i][0], str):
+                filters &= pl.col(col).is_in(metadata_possible_values[i][:3])
+
+            elif isinstance(metadata_possible_values[i][0], int):
+                filters &= pl.col(col).gt(metadata_possible_values[i][1])
+
+        return filters
+
+    else:
+        raise ValueError("VectorStore class not recognized")
 
 
 # -----------------
@@ -189,7 +235,7 @@ if __name__ == "__main__":
     # I'm aware these are not enough, but it's a start.
     # Also, ChromaDB takes some time to insert data,
     # so I'm keeping the number of vectors low for now.
-    vector_store_cardinality = [500, 1000, 10_000, 50_000, 100_000]
+    vector_store_cardinality = [500, 1_000, 10_000, 50_000]
 
     for (
         dtype,
@@ -278,6 +324,37 @@ if __name__ == "__main__":
                         "Time to query without metadata: {time} seconds",
                         time=round(query_time, 5),
                     )
+
+                    # Query with metadata
+
+                    if N_METADATA > 0:
+                        logger.info("Querying with metadata")
+
+                        # we need to make specific filters according to the vector store.
+                        # Let's add one filter for each metadata column
+
+                        filters = make_metadata_filters(
+                            vector_store=vector_store,
+                            metadata_possible_values=METADATA_POSSIBLE_VALUES,
+                            loader=loader,
+                        )
+
+                        query_time = benchmark_query(
+                            vector_store=vector_store,
+                            query_vector=query_vector,
+                            top_k=TOP_K,
+                            filters=filters,
+                            num_runs=NUM_RUNS,
+                        )
+
+                        results[
+                            f"{vector_store_class.__name__} - query with metadata"
+                        ].append(query_time)
+
+                        logger.info(
+                            "Time to query with metadata: {time} seconds",
+                            time=round(query_time, 5),
+                        )
 
             # Save results to a CSV file
             results_df = pl.DataFrame(results)
