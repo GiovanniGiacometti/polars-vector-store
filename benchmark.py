@@ -189,7 +189,7 @@ if __name__ == "__main__":
     # I'm aware these are not enough, but it's a start.
     # Also, ChromaDB takes some time to insert data,
     # so I'm keeping the number of vectors low for now.
-    vector_store_cardinality = [500]
+    vector_store_cardinality = [500, 1000, 10_000, 50_000, 100_000]
 
     for (
         dtype,
