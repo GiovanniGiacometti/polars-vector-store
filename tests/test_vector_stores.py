@@ -24,9 +24,10 @@ class TestVectorStore:
     Test vector stores
     """
 
-    def test_query_chroma_vector_store(self, test_data, tmp_path):
+    @pytest.mark.parametrize("apply_filter", [True, False])
+    def test_query_chroma_vector_store(self, test_data, tmp_path, apply_filter):
         """
-        Test querying a ChromaDB vector store without filters
+        Test querying a ChromaDB vector store
         """
         parquet_loader, query = test_data
 
@@ -37,11 +38,26 @@ class TestVectorStore:
         embeddings = materialized_df[parquet_loader.embedding_column_name].to_numpy()
 
         # compute 3 closest embeddings to the query
-        closest_indices = get_closest_indices(embeddings, query, k=3)
+        closest_indices = get_closest_indices(embeddings, query, k=20)
+
+        if apply_filter:
+            # get 1 metadata column
+            metadata = materialized_df[
+                parquet_loader.metadata_columns_names[0]
+            ].to_numpy()
+            value = metadata[0]
+
+            closest_indices = closest_indices[metadata[closest_indices] == value]
+
+        closest_indices = closest_indices[-3:]
 
         # query the vector store
 
-        result = vector_store.similarity_search_by_vector(query, k=3)
+        filters = None
+        if apply_filter:
+            filters = {parquet_loader.metadata_columns_names[0]: value}
+
+        result = vector_store.similarity_search_by_vector(query, k=3, filters=filters)
 
         # We leverage that ids are just the indexes
         # Chroma might not return the exact same order of the closest indices
@@ -56,7 +72,10 @@ class TestVectorStore:
             PolarsTopKVectorStore,
         ],
     )
-    def test_query_polars_based_vector_store(self, vector_store, test_data):
+    @pytest.mark.parametrize("apply_filter", [True, False])
+    def test_query_polars_based_vector_store(
+        self, vector_store, test_data, apply_filter
+    ):
         """
         Test querying a Polars based vector store without filters
         """
@@ -69,11 +88,26 @@ class TestVectorStore:
         embeddings = materialized_df[parquet_loader.embedding_column_name].to_numpy()
 
         # compute 3 closest embeddings to the query
-        closest_indices = get_closest_indices(embeddings, query, k=3)
+        closest_indices = get_closest_indices(embeddings, query, k=20)
+
+        if apply_filter:
+            # get 1 metadata column
+            metadata = materialized_df[
+                parquet_loader.metadata_columns_names[0]
+            ].to_numpy()
+            value = metadata[0]
+
+            closest_indices = closest_indices[metadata[closest_indices] == value]
+
+        closest_indices = closest_indices[-3:]
 
         # query the vector store
 
-        result = vector_store.similarity_search_by_vector(query, k=3)
+        filters = None
+        if apply_filter:
+            filters = pl.col(parquet_loader.metadata_columns_names[0]) == value
+
+        result = vector_store.similarity_search_by_vector(query, k=3, filters=filters)
 
         # We leverage that ids are just the indexes
 
