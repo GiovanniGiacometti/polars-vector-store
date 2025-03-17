@@ -61,17 +61,23 @@ VECTOR_DTYPES: list[tuple[np.dtype, str]] = [
 # --- Helper functions ---
 
 
-def generate_embedding(
+def generate_embeddings(
     n_embeddings: int,
     n_dimensions: int,
     dtype: np.dtype,
     seed: int = 42,
+    normalize: bool = True,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Generate random embeddings
     """
     np.random.seed(seed)
-    return np.random.rand(n_embeddings, n_dimensions).astype(dtype)
+    embeddings = np.random.rand(n_embeddings, n_dimensions).astype(dtype)
+
+    if normalize:
+        embeddings /= np.linalg.norm(embeddings, axis=1, keepdims=True)
+
+    return embeddings
 
 
 def generate_loader(
@@ -88,7 +94,7 @@ def generate_loader(
     """
 
     # Generate random embeddings
-    embeddings = generate_embedding(
+    embeddings = generate_embeddings(
         n_embeddings=n_rows, n_dimensions=n_dimensions, seed=seed, dtype=dtype
     )
 
@@ -175,11 +181,21 @@ def make_metadata_filters(
     vector_store: VectorStore,
     loader: ParquetLoader,
     metadata_possible_values: list[list[str | int]],
+    n_filters: int,
 ) -> dict | pl.Expr:
     """
     Make metadata filters according to the VectorStore class.
     One filter per metadata column
     """
+
+    if n_filters > len(loader.metadata_columns_names):
+        raise ValueError("Number of filters exceeds number of metadata columns")
+
+    if n_filters == 0:
+        raise ValueError("Number of filters must be greater than 0")
+
+    filter_cnt = 0
+
     if isinstance(vector_store, ChromaDB):
         filters_cond = []
 
@@ -196,6 +212,17 @@ def make_metadata_filters(
                     }
                 )
 
+            else:
+                raise ValueError("Metadata type not recognized")
+
+            filter_cnt += 1
+
+            if filter_cnt == n_filters:
+                break
+
+        if len(filters_cond) == 1:
+            return filters_cond[0]
+
         return {
             "$and": filters_cond,
         }
@@ -209,6 +236,14 @@ def make_metadata_filters(
 
             elif isinstance(metadata_possible_values[i][0], int):
                 filters &= pl.col(col).gt(metadata_possible_values[i][1])
+
+            else:
+                raise ValueError("Metadata type not recognized")
+
+            filter_cnt += 1
+
+            if filter_cnt == n_filters:
+                break
 
         return filters
 
@@ -235,7 +270,7 @@ if __name__ == "__main__":
     # I'm aware these are not enough, but it's a start.
     # Also, ChromaDB takes some time to insert data,
     # so I'm keeping the number of vectors low for now.
-    vector_store_cardinality = [500, 1_000, 10_000, 50_000]
+    vector_store_cardinality = [500, 1000, 10_000, 50_000]
 
     for (
         dtype,
@@ -271,7 +306,7 @@ if __name__ == "__main__":
                 )
 
                 # generate query vector
-                query_vector = generate_embedding(
+                query_vector = generate_embeddings(
                     n_embeddings=1, n_dimensions=n_dimensions, seed=42, dtype=dtype
                 )
 
@@ -328,15 +363,16 @@ if __name__ == "__main__":
                     # Query with metadata
 
                     if N_METADATA > 0:
-                        logger.info("Querying with metadata")
+                        logger.info("Querying with filters on 1 metadata")
 
                         # we need to make specific filters according to the vector store.
-                        # Let's add one filter for each metadata column
+                        # Let's query with 1 metadata first
 
                         filters = make_metadata_filters(
                             vector_store=vector_store,
                             metadata_possible_values=METADATA_POSSIBLE_VALUES,
                             loader=loader,
+                            n_filters=1,
                         )
 
                         query_time = benchmark_query(
@@ -348,12 +384,43 @@ if __name__ == "__main__":
                         )
 
                         results[
-                            f"{vector_store_class.__name__} - query with metadata"
+                            f"{vector_store_class.__name__} - query 1 metadata"
+                        ].append(query_time)
+
+                        # Query with all metadata
+
+                        logger.info(
+                            "Time to query 1 metadata: {time} seconds",
+                            time=round(query_time, 5),
+                        )
+
+                        logger.info(
+                            f"Querying with filters on all ({N_METADATA}) metadata"
+                        )
+
+                        filters = make_metadata_filters(
+                            vector_store=vector_store,
+                            metadata_possible_values=METADATA_POSSIBLE_VALUES,
+                            loader=loader,
+                            n_filters=N_METADATA,
+                        )
+
+                        query_time = benchmark_query(
+                            vector_store=vector_store,
+                            query_vector=query_vector,
+                            top_k=TOP_K,
+                            filters=filters,
+                            num_runs=NUM_RUNS,
+                        )
+
+                        results[
+                            f"{vector_store_class.__name__} - query all ({N_METADATA}) metadata"
                         ].append(query_time)
 
                         logger.info(
-                            "Time to query with metadata: {time} seconds",
+                            "Time to query all ({n}) metadata: {time} seconds",
                             time=round(query_time, 5),
+                            n=N_METADATA,
                         )
 
             # Save results to a CSV file

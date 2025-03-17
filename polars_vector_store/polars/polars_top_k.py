@@ -45,7 +45,7 @@ class PolarsTopKVectorStore(PolarsVectorStore):
                     pl.col("query"),
                 ).arr.sum()
             )
-            .top_k(k, by="sim")
+            .top_k(k, by="sim")  # first row is the highest
             .select(self.loader.get_info_columns())
             .collect()
         )

@@ -63,15 +63,17 @@ class NumpyBasedPolarsVectorStore(PolarsVectorStore):
         # Get the indices of the k smallest cosine similarities
         # Notice that argpartition gives no guarantee on the order
         # of the k smallest elements, which is why we need
-        # an extra sorting step after the partitioning.
+        # an extra sorting step after the partitioning if we want
+        # to return the k closest elements in "exact" order.
         closest_indices = np.argpartition(cosine_similarities, -k)[-k:]
 
+        # Enable this to sort the indices by cosine similarity
         # Sort the k closest indices by cosine similarity
-        idx = closest_indices[np.argsort(cosine_similarities[closest_indices])[::-1]]
+        # idx = closest_indices[np.argsort(cosine_similarities[closest_indices])[::-1]]
 
         return (
             lazy_df.with_row_index()
-            .filter(pl.col("index").is_in(idx))
+            .filter(pl.col("index").is_in(closest_indices))
             .select(self.loader.get_info_columns())
             .collect()
         )
