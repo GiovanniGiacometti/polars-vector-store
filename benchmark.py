@@ -296,15 +296,6 @@ if __name__ == "__main__":
                     f"benchmark_{n_rows}_{dtype_name}_{n_dimensions}.parquet",
                 )
 
-                loader = generate_loader(
-                    path_to_file=path_to_file,
-                    n_rows=n_rows,
-                    n_dimensions=n_dimensions,
-                    metadata_possible_values=METADATA_POSSIBLE_VALUES,
-                    n_metadata=N_METADATA,
-                    dtype=dtype,
-                )
-
                 # generate query vector
                 query_vector = generate_embeddings(
                     n_embeddings=1, n_dimensions=n_dimensions, seed=42, dtype=dtype
@@ -313,6 +304,15 @@ if __name__ == "__main__":
                 # We query once without metadata and once with all metadata
 
                 for vector_store_class in vectorstores_classes:
+                    loader = generate_loader(
+                        path_to_file=path_to_file,
+                        n_rows=n_rows,
+                        n_dimensions=n_dimensions,
+                        metadata_possible_values=METADATA_POSSIBLE_VALUES,
+                        n_metadata=N_METADATA,
+                        dtype=dtype,
+                    )
+
                     logger.info("-------------------------------------")
                     logger.info(
                         "Benchmarking {vector_store_class}",
