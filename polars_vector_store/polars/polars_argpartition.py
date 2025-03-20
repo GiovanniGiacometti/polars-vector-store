@@ -22,7 +22,7 @@ class PolarsArgPartitionVectorStore(PolarsVectorStore):
         similarity search by vector
         """
 
-        lazy_df = self.loader.get_lazy_df()
+        lazy_df = self.loader.lazy_df
 
         # If we have filters
         if filters is not None:

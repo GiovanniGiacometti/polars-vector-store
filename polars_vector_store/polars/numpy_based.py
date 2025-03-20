@@ -30,8 +30,7 @@ class NumpyBasedPolarsVectorStore(PolarsVectorStore):
         similarity search by vector
         """
 
-        lazy_df = self.loader.get_lazy_df()
-        materialized_df = self.loader.materialized_df
+        lazy_df = self.loader.lazy_df
 
         embedding_col = self.loader.embedding_column_name
 
@@ -44,15 +43,18 @@ class NumpyBasedPolarsVectorStore(PolarsVectorStore):
             lazy_df = lazy_df.filter(filters)
 
             # If we have already the materialized df, we filter it
-            if materialized_df is not None:
-                materialized_df = materialized_df.filter(filters)
+            if self.loader.has_materialized_df:
+                materialized_df = self.loader.materialized_df.filter(filters)
             else:
                 materialized_df = lazy_df.select([embedding_col]).collect()
 
         # If we don't have filters and the data is not materialized,
         # we materialize it
-        elif materialized_df is None:
+        elif not self.loader.has_materialized_df:
             materialized_df = lazy_df.select([embedding_col]).collect()
+
+        else:
+            materialized_df = self.loader.materialized_df
 
         vector_store_embeds = materialized_df[embedding_col].to_numpy()
 

@@ -33,7 +33,7 @@ class TestVectorStore:
 
         vector_store = ChromaDB.from_parquet(parquet_loader, db_path=str(tmp_path))
 
-        materialized_df = parquet_loader.get_lazy_df().collect()
+        materialized_df = parquet_loader.lazy_df.collect()
 
         embeddings = materialized_df[parquet_loader.embedding_column_name].to_numpy()
 
@@ -83,7 +83,7 @@ class TestVectorStore:
 
         vector_store = vector_store(parquet_loader)
 
-        materialized_df = parquet_loader.get_lazy_df().collect()
+        materialized_df = parquet_loader.lazy_df.collect()
 
         embeddings = materialized_df[parquet_loader.embedding_column_name].to_numpy()
 
