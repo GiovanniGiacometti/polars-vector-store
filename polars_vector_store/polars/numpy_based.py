@@ -31,7 +31,6 @@ class NumpyBasedPolarsVectorStore(PolarsVectorStore):
         """
 
         lazy_df = self.loader.lazy_df
-
         embedding_col = self.loader.embedding_column_name
 
         # If we have filters
