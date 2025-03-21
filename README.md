@@ -68,7 +68,7 @@ closest_k_with_metadata = polars_vector_store.similarity_search_by_vector(
 
 ```
 
-Both `closest_k` and `closest_k_with_metadata` are `Polars DataFrame`, containing the information of the closest `k` vectors to the query vector.
+Both `closest_k` and `closest_k_with_metadata` are Polars DataFrame, containing the information of the closest `k` vectors to the query vector.
 
 This approach is particularly useful if your data is already stored in a Parquet file and you need to perform some complex metadata filtering alongside similarity search.
 
@@ -130,7 +130,7 @@ Observations:
 
 ![Query time with one metadata filtering](benchmark_results/figures/perf_comparison_one_metadata_filtering_float16.png)
 
-Some evidence:
+Observations:
 
 - ChromaDB remains the fastest but slows down as dataset size increases. Interestingly, it performs poorly with 128-dimensional embeddings, likely due to some internal issues worth investigating.
 - Polars implementations show **no significant increase** in query time when filtering metadata, which shows one of the main advantages of using Polars as a vector store, especially when metadata filtering is required.
