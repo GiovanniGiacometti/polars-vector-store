@@ -80,25 +80,23 @@ I’ve explored three different implementations. I'll describe them here, but yo
     - Extracts the embedding column as a NumPy array.
     - Computes the similarity using NumPy.
     - Sorts results using NumPy’s argpartition for efficiency (again, shoutout to the blog post).
-    - ✅ Fastest implementation.
+    - ✅ Fastest implementation (when filtering is not requested)
     - ❌ Requires loading all embeddings into memory, making it impractical for large datasets.
 
 2. `PolarsTopKVectorStore`: 
     - Computes the similarity directly within the DataFrame.
     - Sorts results using Polars `top_k` function.
     - ✅ Avoids materializing large DataFrames early.
-    - ❌ Slower than the NumPy-based implementation.
 
 3. `PolarsArgPartitionVectorStore`:
     - Identical to the previous implementation but uses the [`arg_partition` plugin](https://github.com/GiovanniGiacometti/polars-argpartition) to sort the similarities.
-    - ✅ *Should* be more efficient than the previous implementation, as a full sort is not actually needed.
-    - ❌ Still slower than the NumPy-based implementation.
+    - ✅ *Should* be more efficient than the previous implementation, as a full sort is not performed.
 
-The most critical cons of all this implementation is however the same: they are not as fast as a real vector store, not even close.
+The most critical con of all these implementations is however the same: they are not as fast as a real vector store.
 
 ## Benchmark
 
-A simple benchmark was conducted  to compare the performance of the different implementations against a real vector store, [ChromaDB](https://docs.trychroma.com/docs/overview/introduction). ChromaDB was set up with default values, though further optimization is possible—refer to the [ChromaDB documentation](https://docs.trychroma.com/docs/collections/configure) for details.
+A simple benchmark was conducted to compare the performance of the different implementations against a real vector store, [ChromaDB](https://docs.trychroma.com/docs/overview/introduction). ChromaDB was set up with default values, though further optimization is possible — refer to the [ChromaDB documentation](https://docs.trychroma.com/docs/collections/configure) for details.
 
 The benchmarking code, available in `benchmark.py`, runs as part of a GitHub action and commits results to the `benchmark_results` folder.
 
@@ -111,11 +109,11 @@ The benchmark measures the time required to perform a similarity search on a dat
 - Querying while filtering on all three metadata columns in the dataset.
 
 These tests are repeated across varying parameters:
-- **Dataset size**: Ranges from 500 to 50,000 vectors (limited by GitHub Actions’ free-tier memory constraints, particularly for ChromaDB, whose setup requires higher memory).
-- **Embedding dimensions**: 128 to 1024.
+- **Dataset size**: Ranges from 500 to 50000 vectors (limited by GitHub Actions’ free-tier memory constraints, particularly for ChromaDB, whose setup requires high memory).
+- **Embedding dimensions**: from 128 to 1024.
 - **Vector data type**: float16 or float32.
 
-Results are stored as CSV files in the  `benchmark_results` folderfolder and a Jupyter notebook (`4-visualize-benchmark-results.ipynb`) in `notebooks` helps analyze them.
+Results are stored as CSV files in the  `benchmark_results` folderfolder and a Jupyter notebook (`4-visualize-benchmark-results.ipynb`) in `notebooks` was used to produce some analysis plots.
 
 ### Results
 
@@ -134,9 +132,9 @@ Observations:
 
 Some evidence:
 
-- ChromaDB remains the fastest but slows as dataset size increases. Interestingly, it performs poorly with 128-dimensional embeddings, likely due to some internal issues worth investigating.
+- ChromaDB remains the fastest but slows down as dataset size increases. Interestingly, it performs poorly with 128-dimensional embeddings, likely due to some internal issues worth investigating.
 - Polars implementations show **no significant increase** in query time when filtering metadata, which shows one of the main advantages of using Polars as a vector store, especially when metadata filtering is required.
-- The NumPy-based approach, however, slows considerably with metadata filtering, which is unexpected and requires further analysis.
+- The NumPy-based approach, however, slows considerably with metadata filtering. I'm not entirely sure why this is the case, it might be that the other implementations are able to leverage some Polars optimizations that this approach (that materializes the dataframe and then converts it back to a DataFrame) cannot.
 
 ## Contributing
 

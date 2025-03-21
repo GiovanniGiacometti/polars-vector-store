@@ -69,7 +69,8 @@ class NumpyBasedPolarsVectorStore(PolarsVectorStore):
         closest_indices = np.argpartition(cosine_similarities, -k)[-k:]
 
         # Enable this to sort the indices by cosine similarity
-        # Sort the k closest indices by cosine similarity
+        # We are not doing so since other implementations
+        # do not guarantee the order of the closest indices
         # idx = closest_indices[np.argsort(cosine_similarities[closest_indices])[::-1]]
 
         return (
