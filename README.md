@@ -7,7 +7,7 @@ We all know Polars for what it is: an incredibly fast Dataframe library, with a 
 The goal of this project is to investigate whether Polars can serve as vector store, by leveraging:
 
 - its [native integration with numpy](https://docs.pola.rs/user-guide/expressions/numpy-functions/), to compute embeddings similarity directly on the dataframe.
-- its comprehensive [expressions](https://docs.pola.rs/user-guide/expressions/), framework to implement a comprehensive metadata filtering system.
+- its comprehensive [expressions](https://docs.pola.rs/user-guide/expressions/) framework, to implement a comprehensive metadata filtering system.
 - its [lazy api](https://docs.pola.rs/user-guide/lazy-api/), for performance optimization.
 
 To explore this, I've built three different implementations, each taking a unique approach to the problem. You can find more details in the [Implementation details](#implementation-details) section below.
