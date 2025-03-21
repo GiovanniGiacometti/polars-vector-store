@@ -1,14 +1,14 @@
 # Polars Vector Store
 
-This repository explores a simple yet fascinating idea: can [Polars](https://pola.rs/) be used as a [Vector Store](https://en.wikipedia.org/wiki/Vector_database)?
+This repository explores a simple yet fascinating idea: can [Polars](https://pola.rs/) be used as a [vector store](https://en.wikipedia.org/wiki/Vector_database)?
 
-We all know Polars for what it is: an incredibly fast Dataframe library, with a well structured API and a clean, polished syntax. Can it go beyond that?
+We all know Polars for what it is: an incredibly fast Dataframe library, with a well structured API and a clean, polished syntax. But can it be more that?
 
-The goal of this project is to investigate whether Polars can serve as a fully-fledged vector store, by leveraging:
+The goal of this project is to investigate whether Polars can serve as vector store, by leveraging:
 
-- its [native integration with numpy](https://docs.pola.rs/user-guide/expressions/numpy-functions/) to compute embeddings similarity directly on the dataframe
-- its comprehensive [expressions](https://docs.pola.rs/user-guide/expressions/) framework to implement a comprehensive metadata filtering system.
-- its [lazy api](https://docs.pola.rs/user-guide/lazy-api/) for performance optimization.
+- its [native integration with numpy](https://docs.pola.rs/user-guide/expressions/numpy-functions/), to compute embeddings similarity directly on the dataframe.
+- its comprehensive [expressions](https://docs.pola.rs/user-guide/expressions/), framework to implement a comprehensive metadata filtering system.
+- its [lazy api](https://docs.pola.rs/user-guide/lazy-api/), for performance optimization.
 
 To explore this, I've built three different implementations, each taking a unique approach to the problem. You can find more details in the [Implementation details](#implementation-details) section below.
 
@@ -22,7 +22,7 @@ The conclusions are straightforward:
 
 This should not come as a surprise: vector stores use highly optimized data structures and algorithms tailored for vector operations, while Polars is designed to serve a much broader scope. 
 
-However, Polars can still be a viable alternative for small datasets  (up to ~10K vectors), especially when complex metadata filtering is required. For more insights, see the [Benchmark](#benchmark) section below.
+However, Polars can still be a viable alternative for small datasets  (up to ~5K vectors), especially when complex metadata filtering is required. For more insights, see the [Benchmark](#benchmark) section below.
 
 ## Repository Structure
 
@@ -74,7 +74,7 @@ This approach is particularly useful if your data is already stored in a Parquet
 
 ### Implementations
 
-I’ve explored three different implementations. I'll describe them here, but you can find the code in the `polars_vector_store/polars` folder. Notice that all implementations rely on embedding being normalized, so that the similarity can simply be computed using the dot product.
+I’ve explored three different implementations. I'll describe them here, but you can find the code in the `polars_vector_store/polars` folder. Notice that all implementations rely on embedding being normalized, so that the similarity can be computed using the dot product.
 
 1. `NumpyBasedPolarsVectorStore`: 
     - Extracts the embedding column as a NumPy array.
@@ -91,7 +91,7 @@ I’ve explored three different implementations. I'll describe them here, but yo
 
 3. `PolarsArgPartitionVectorStore`:
     - Identical to the previous implementation but uses the [`arg_partition` plugin](https://github.com/GiovanniGiacometti/polars-argpartition) to sort the similarities.
-    - ✅ Should be more efficient than the previous implementation, as a full sort is not actually needed (spoiler: it's not).
+    - ✅ *Should* be more efficient than the previous implementation, as a full sort is not actually needed.
     - ❌ Still slower than the NumPy-based implementation.
 
 The most critical cons of all this implementation is however the same: they are not as fast as a real vector store, not even close.
